@@ -10,13 +10,10 @@ import './App.css';
 function App() {
 
   const [jobs, setJobs] = React.useState([]);
+  const [jobsLoading, setJobsLoading] = React.useState(true);
   const [offices, setOffices] = React.useState([{ name: "All offices", jobs: [], departments: [] }, { name: "London", jobs: [], departments: [] }, { name: "Melbourne", jobs: [], departments: [] }, { name: "New York", jobs: [], departments: [] }, { name: "San Francisco", jobs: [], departments: [] }]);
   const [selectedOffice, setSelectedOffice] = React.useState();
-  const [departmentsAtSelectedOffice, setDepartmentsAtSelectedOffice] = React.useState([]);
-  const [jobsAtSelectedOffice, setJobsAtSelectedOffice] = React.useState(["hi"]);
-  // const [departments, setDepartments] = React.useState(['engineering', 'sales']);
   var jobAPI = 'https://boards-api.greenhouse.io/v1/boards/cultureamp/jobs?content=true';
-
 
   const getjobs = () => {
     const test = fetch(jobAPI)
@@ -40,7 +37,6 @@ function App() {
         // set the 'All offices' job to have all jobs
         offices[0].jobs = jobs;
         
-
         /*
             loop through all the offices, and all the jobs in each office, to find the departments
         */
@@ -58,8 +54,8 @@ function App() {
         }
         
         setOffices(offices);
-        console.log('it is: ', offices[0])
-        setSelectedOffice(offices[0])
+        setSelectedOffice(offices[0]);
+        setJobsLoading(false);
     }
     
 }, [jobs])
@@ -74,17 +70,27 @@ function App() {
       <Section className={"browse-positions"}>
         <Container>
           <h1>Careers</h1>
-          <h2>
-            <span className="browse-positions__heading-text">
-                { selectedOffice.jobs.length + ' ' }
-                open positions in 
-            </span>
-            <Dropdown offices={offices} setSelectedOffice={setSelectedOffice} selectedOffice={selectedOffice}>
-            </Dropdown>
-          </h2>
         </Container>
-        <DepartmentList selectedOffice={selectedOffice}>
-        </DepartmentList>
+          {
+            jobsLoading ? (
+              <h1>Loading</h1>
+            ) : (
+              <>
+              <Container>
+                <h2>
+                  <span className="browse-positions__heading-text">
+                      { selectedOffice.jobs.length + ' ' }
+                      open positions in 
+                  </span>
+                  <Dropdown offices={offices} setSelectedOffice={setSelectedOffice} selectedOffice={selectedOffice}>
+                  </Dropdown>
+                </h2>
+              </Container>
+              <DepartmentList selectedOffice={selectedOffice}>
+              </DepartmentList>
+              </>
+            )
+          }
       </Section>
     </div>
   );
