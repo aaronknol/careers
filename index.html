@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<head>
+    <title>Careers</title>
+    <link href="styles/style.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css">
+</head>
+<body>
+    
+
+    <div id="like_button_container"></div>
+
+    <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script type="text/babel">
+        'use strict';
+
+        function Section (props) {
+            return ( 
+                <section className={props.className}>
+                    { props.children }
+                </section>
+            )
+        }
+
+        function Container (props) {
+            return ( 
+                <div className="container">
+                    { props.children }
+                </div>
+            )
+        }
+
+        function Heading (props) {
+            return (
+                <h2>
+                    { children }
+                    <span className="browse-positions__heading-text">{props.text}</span>
+                </h2>
+            )
+        }
+
+        function LikeButton (props) {
+            const [liked, setLiked] = React.useState(false);
+            return (
+                
+                <button onClick={() => setLiked(true) }>
+                    { liked ? 'You liked this' : 'Like'}
+                </button>
+            )
+        }
+
+        function DropdownButton (props) {
+            return (
+                <button type="button" onClick={props.clickHandler} className="btn btn-secondary dropdown-toggle office-locations__button">
+                    <span className="office-locations__button-title">{props.text ? props.text : 'Select an office'}</span>
+                    <div className="fa fa-angle-down"></div>
+                </button>
+            )
+        }
+        
+        function Dropdown (props) {
+            const [showDropdown, setShowdropdown] = React.useState(false);
+  
+            
+            function handleOfficeClick(e) {
+                console.log(e.target.dataset);
+                getData();
+            }
+
+            function handleButtonClick() {
+                setShowdropdown(!showDropdown);
+            }
+
+            return (
+                <div className="dropdown office-locations">
+                    <DropdownButton clickHandler={handleButtonClick} text={props.selectedOffice && props.selectedOffice.name ? props.selectedOffice.name : 'Select an office'}></DropdownButton>
+                    {
+                        showDropdown ? (
+                            <div className="dropdown__wrapper dropdown-menu office-locations__dropdown">
+                                <ul className="dropdown__ul">
+                                    {
+                                        props.offices.map(office => {
+                                            return (
+                                                (
+                                                    <li key={office.name} className={office.name === props.selectedOffice && props.selectedOffice.name ? 'dropdown__li is-selected' : 'dropdown__li' }>
+                                                        <button 
+                                                            className="dropdown-item office-locations__location-button" 
+                                                            onClick={(e) => { 
+                                                                props.setSelectedOffice(office); 
+                                                                setShowdropdown(false); 
+                                                            }}
+                                                            aria-selected={ office.name === props.selectedOffice ? 'true' : 'false' }>
+                                                            {office.name} ({office.jobs.length})
+                                                        </button>
+                                                    </li>
+                                                )
+                                            )
+                                        })
+                                    }
+                                </ul>
+                            </div>
+                        ) : null
+                    }
+                </div>
+            )
+        }
+
+        function DepartmentList (props) {
+            
+            return (
+                props.selectedOffice ? (
+                    <ul className="job-listings panel-group">
+                    {
+                        props.selectedOffice.departments.map((department, index) => {
+                            return (
+                                <JobDepartment key={department} department={department} selectedOffice={props.selectedOffice} jobs={props.selectedOffice.jobs}></JobDepartment>
+                            )
+                        })
+                    }   
+                    </ul>) : null
+                
+            )
+        }
+
+        function JobDepartment (props) {
+            const [isOpen, setIsOpen] = React.useState(false);
+            let numJobsInDepartment = 1;
+
+            function getNumberJobsInDepartment (department) {
+                numJobsInDepartment = props.jobs.filter(function (job) {
+                    return (job.departments[0].name === department)
+                });
+
+                return numJobsInDepartment.length;
+            }
+
+            return (
+                <li key={props.department} className={ isOpen ? 'panel is-open' : 'panel' }>
+                    <h3 className="panel-title department">
+                        <button type="button" className="panel-title__button" onClick={() => setIsOpen(!isOpen)} >
+                            { props.department } ({ getNumberJobsInDepartment(props.department) })
+                            <div className="fa fa-angle-down panel-heading__arrow"></div>
+                        </button>
+                    </h3>
+                    <ul className="panel-body" hidden={isOpen ? false : 'hidden'}>
+                        {
+                            props.selectedOffice.jobs.map(job => {
+                                if (job.departments[0].name === props.department) {
+                                    return (
+                                        <JobPosition key={job.id} job={job}></JobPosition>
+                                    )
+                                }
+                            })
+                        }
+                        { props.children }
+                    </ul>
+                </li>
+            )
+        }
+
+        function JobList (props) {
+            return (
+                <ul>
+                    { props.children }
+                </ul>
+            )
+        }
+
+        function JobPosition ({ job }) {
+            return (
+                <li className="job-listing">
+                    <a href={job.absolute_url} className="job-listing__link">
+                        <span className="job-listing__title-location">
+                            <span className="job-listing__title">
+                                {job.title}
+                            </span>
+                            <span className="job-location">{job.location.name}</span>
+                        </span>
+                        <span className="job-listing__apply">
+                            Apply
+                            <svg className="job-listing__apply-arrow" width="12" height="13" viewBox="0 0 12 13" fill="none" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" clipRule="evenodd" d="M6 0.216797L4.9425 1.2743L9.1275 5.4668H0V6.9668H9.1275L4.9425 11.1593L6 12.2168L12 6.2168L6 0.216797Z" fill="#F3786D"></path></svg></span>
+                    </a>
+                </li>
+            )
+        }
+
+        function Tool () {
+            const [jobs, setJobs] = React.useState([]);
+            const [offices, setOffices] = React.useState([{ name: "All offices", jobs: [], departments: [] }, { name: "London", jobs: [], departments: [] }, { name: "Melbourne", jobs: [], departments: [] }, { name: "New York", jobs: [], departments: [] }, { name: "San Francisco", jobs: [], departments: [] }]);
+            const [selectedOffice, setSelectedOffice] = React.useState();
+            const [departmentsAtSelectedOffice, setDepartmentsAtSelectedOffice] = React.useState([]);
+            const [jobsAtSelectedOffice, setJobsAtSelectedOffice] = React.useState(["hi"]);
+            // const [departments, setDepartments] = React.useState(['engineering', 'sales']);
+            var jobAPI = 'https://boards-api.greenhouse.io/v1/boards/cultureamp/jobs?content=true';
+
+            const useFetch = () => {
+                const test = fetch(jobAPI)
+                .then(response => response.json())
+                .then(data => {
+                    setJobs(data.jobs);
+                });
+            }
+
+            React.useEffect( () => {
+                if (jobs.length) {
+                    /*
+                        loop through offices and assign the jobs that have the same location as the office name to the office
+                    */
+                    for (let i = 0; i < offices.length; i++) {
+                        offices[i].jobs = jobs.filter(function(job) {
+                            return job.location.name.includes(offices[i].name);
+                        });
+                    }
+                    
+                    // set the 'All offices' job to have all jobs
+                    offices[0].jobs = jobs;
+                    
+
+                    /*
+                        loop through all the offices, and all the jobs in each office, to find the departments
+                    */
+                    for (let i = 0; i < offices.length; i++) {
+                        for (let j = 0; j < offices[i].jobs.length; j++) {
+                            if (!offices[i].departments.includes(offices[i].jobs[j].departments[0].name)) {
+                                offices[i].departments.push(offices[i].jobs[j].departments[0].name)
+                            }
+                        }
+                    }
+
+                    // sort the departments alphabetically
+                    for (let i = 0; i < offices.length; i++) {
+                        offices[i].departments = offices[i].departments.sort()
+                    }
+                    
+                    setOffices(offices);
+                    setSelectedOffice(offices[0])
+                }
+                
+            }, [jobs])
+            
+            
+            React.useEffect( () => {
+                useFetch();
+            }, []);
+
+            if (!selectedOffice) return null
+            return (
+                
+                <Section className={"browse-positions"}>
+                    <Container>
+                        <h1>Careers</h1>
+                        <h2>
+                            <span className="browse-positions__heading-text">
+                                { selectedOffice.jobs.length }
+                                open positions in 
+                            </span>
+                            <Dropdown offices={offices} setSelectedOffice={setSelectedOffice} selectedOffice={selectedOffice}>
+                            </Dropdown>
+                        </h2>
+                        {
+                            // <Heading text="open positions in">
+                            //     {selectedOffice.jobs.length}
+                            //     <Dropdown offices={offices} setSelectedOffice={setSelectedOffice} selectedOffice={selectedOffice}>
+                            //     </Dropdown>
+                            // </Heading>
+                        }
+                    </Container>
+                    <DepartmentList selectedOffice={selectedOffice}>
+                    </DepartmentList>
+                </Section>
+            )
+        }
+
+        let domContainer = document.querySelector('#like_button_container');
+        ReactDOM.render(<Tool />, domContainer);</script>
+</body>
+</html>
